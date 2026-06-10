@@ -16,7 +16,7 @@ AppVerName={#MyAppName}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 ; Default installation directory
-DefaultDirName={pf}\Pantalla
+DefaultDirName=\Program Files\Pantalla
 DefaultGroupName=BitRate27
 ; Output installer location (relative to script)
 OutputDir=.

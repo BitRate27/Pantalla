@@ -60,8 +60,8 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\bgill\source\repos\Pantalla\Debug\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VirtualNDITray.dir\Debug\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VirtualNDITray</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pantalla.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pantalla</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\bgill\source\repos\Pantalla\VirtualNDITray_autogen\include_Debug;C:\Users\bgill\source\repos\Pantalla\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\bgill\source\repos\Pantalla\Pantalla_autogen\include_Debug;C:\Users\bgill\source\repos\Pantalla\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Users/bgill/source/repos/Pantalla/qt/6.7.3/msvc2019_64/include/QtCore" /external:I "C:/Users/bgill/source/repos/Pantalla/qt/6.7.3/msvc2019_64/include" /external:I "C:/Users/bgill/source/repos/Pantalla/qt/6.7.3/msvc2019_64/mkspecs/win32-msvc" /external:I "C:/Users/bgill/source/repos/Pantalla/qt/6.7.3/msvc2019_64/include/QtGui" /external:I "C:/Users/bgill/source/repos/Pantalla/qt/6.7.3/msvc2019_64/include/QtWidgets" -Zc:__cplusplus -utf-8</AdditionalOptions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -156,7 +156,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>C:/Users/bgill/source/repos/Pantalla/Debug/VirtualNDITray.lib</ImportLibrary>
-      <ProgramDataBaseFile>C:/Users/bgill/source/repos/Pantalla/Debug/VirtualNDITray.pdb</ProgramDataBaseFile>
+      <ProgramDataBaseFile>C:/Users/bgill/source/repos/Pantalla/Debug/Pantalla.pdb</ProgramDataBaseFile>
       <SubSystem>Windows</SubSystem>
     </Link>
     <ProjectReference>

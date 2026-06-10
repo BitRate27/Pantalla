@@ -440,7 +440,7 @@ void DisplayManager::SaveSettings()
 		}
 		// Persist the Start on Windows Startup setting
 		j["startOnWindowsStartup"] = m_startOnWindowsStartup;
-		std::ofstream ofs("C:/ProgramData/VirtualNDIDisplay/settings.json");
+		std::ofstream ofs("C:/ProgramData/Pantalla/settings.json");
 		ofs << j.dump(4);
 		ofs.close();
 		log_file("Saved settings to %ls\n", SETTINGS_FILE);
@@ -457,7 +457,7 @@ void DisplayManager::LoadSettings()
 			log_file("No settings file found\n");
 			return;
 		}
-		std::ifstream ifs("C:/ProgramData/VirtualNDIDisplay/settings.json");
+		std::ifstream ifs("C:/ProgramData/Pantalla/settings.json");
 		::nlohmann::json j;
 		ifs >> j;
 		ifs.close();

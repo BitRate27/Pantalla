@@ -49,7 +49,7 @@ void log_file(const char *fmt, ...)
 static void open_log_file(std::wstring /*ignored_path*/)
 {
 	// Use program data folder for logs
-	std::filesystem::path dirPath(L"C:/ProgramData/VirtualNDIDisplay");
+	std::filesystem::path dirPath(L"C:/ProgramData/Pantalla");
 	try {
 		if (!std::filesystem::exists(dirPath)) {
 			std::filesystem::create_directories(dirPath);
