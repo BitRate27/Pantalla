@@ -2,14 +2,14 @@
 Output real and virtual displays over NDI
 
 # Building
-git clone https://github.com/BitRate27/Panalla.git
-cd Pantalla
-cmake .
-open VirtualNDITray.sln
+1. git clone https://github.com/BitRate27/Panalla.git
+2. cd Pantalla
+3. cmake .
+4. open Pantalla.sln
 
 # Creating Installer
-Change Pantalla configuration to Release
-Build Pantalla
-In a Command Shell: ISCC.exe Pantalla.iss
+1. Change Pantalla configuration to Release
+2. Build Pantalla
+3. In a Command Shell: ISCC.exe Pantalla.iss
 
 
