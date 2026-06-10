@@ -4,9 +4,6 @@
     <ClCompile Include="C:\Users\bgill\source\repos\Pantalla\VirtualNDITray_autogen\mocs_compilation_Debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\bgill\source\repos\Pantalla\src\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="C:\Users\bgill\source\repos\Pantalla\src\TrayApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -35,6 +32,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\bgill\source\repos\Pantalla\VirtualNDITray_autogen\mocs_compilation_RelWithDebInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bgill\source\repos\Pantalla\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

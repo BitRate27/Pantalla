@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(VirtualNDITray VERSION 1.0 LANGUAGES CXX)
+project(Pantalla VERSION 1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,7 +21,7 @@ include(cmake/FetchQt.cmake)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
 # WIN32 suppresses the console window on Windows
-add_executable(VirtualNDITray WIN32
+add_executable(Pantalla WIN32
     src/main.cpp
     src/TrayApp.h
     src/TrayApp.cpp
@@ -41,9 +41,9 @@ add_executable(VirtualNDITray WIN32
     src/NDISender.cpp
 )
 
-target_include_directories(VirtualNDITray PRIVATE src)
+target_include_directories(Pantalla PRIVATE src)
 
-target_link_libraries(VirtualNDITray PRIVATE
+target_link_libraries(Pantalla PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
@@ -53,8 +53,8 @@ target_link_libraries(VirtualNDITray PRIVATE
 # Post-build: copy required Qt DLLs next to the executable.
 # Qt6::windeployqt is an imported executable target provided by find_package.
 # -----------------------------------------------------------------------
-add_custom_command(TARGET VirtualNDITray POST_BUILD
+add_custom_command(TARGET Pantalla POST_BUILD
     COMMAND Qt6::windeployqt
-    ARGS    --no-translations "$<TARGET_FILE:VirtualNDITray>"
+    ARGS    --no-translations "$<TARGET_FILE:Pantalla>"
     COMMENT "Running windeployqt…"
 )
