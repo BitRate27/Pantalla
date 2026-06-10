@@ -427,3 +427,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/.qt
+/CMakeFiles
+/qt/6.7.3/msvc2019_64
+/VirtualNDITray_autogen
+/CMakeCache.txt
