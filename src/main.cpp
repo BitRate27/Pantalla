@@ -1,3 +1,4 @@
+#include <windows.h>
 #include <QApplication>
 #include "TrayApp.h"
 #include "global.h"
@@ -120,13 +121,25 @@ int main(int argc, char *argv[])
 		open_log_file(dirPath);
 	}
 
+	// Ensure only a single instance of the application is running.
+	HANDLE hInstanceMutex = CreateMutexW(NULL, FALSE, L"Local\\PantallaSingletonMutex");
+	if (hInstanceMutex) {
+		if (GetLastError() == ERROR_ALREADY_EXISTS) {
+			log_file("Another Pantalla instance is already running. Exiting.\n");
+			CloseHandle(hInstanceMutex);
+			return 0;
+		}
+	}
+
 	ndiLib = load_ndilib();
 	if (!ndiLib) {
 		log_file("Failed to load NDI library\n");
+		if (hInstanceMutex) CloseHandle(hInstanceMutex);
 		return -1;
 	}
 	if (!ndiLib->initialize()) {
 		log_file("Failed to initialize NDI library\n");
+		if (hInstanceMutex) CloseHandle(hInstanceMutex);
 		return -1;
 	}
 	log_file("NDI library loaded successfully\n");
@@ -140,7 +153,7 @@ int main(int argc, char *argv[])
 	TrayApp tray;
 	tray.show();
 	
-
-	
-	return app.exec();
+	int ret = app.exec();
+	if (hInstanceMutex) CloseHandle(hInstanceMutex);
+	return ret;
 }

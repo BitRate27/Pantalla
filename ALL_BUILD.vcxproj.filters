@@ -4,5 +4,6 @@
     <CustomBuild Include="C:\Users\bgill\source\repos\Pantalla\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="tools\fix_icon.ps1" />
   </ItemGroup>
 </Project>
