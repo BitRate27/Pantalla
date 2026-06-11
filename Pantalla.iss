@@ -29,8 +29,8 @@ PrivilegesRequired=admin
 ; Use the provided ICO file as the installer icon (place P_red_circle_icon.ico next to this .iss)
 SetupIconFile=P_red_circle_icon.ico
 ; Use the installed ICO for the Add/Remove Programs (Uninstall) entry
+CloseApplications=yes
 UninstallDisplayIcon={app}\P_red_circle_icon.ico
-
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -50,8 +50,15 @@ Name: "{commondesktop}\Pantalla"; Filename: "{app}\Pantalla.exe"; Tasks: desktop
 
 [Tasks]
 Name: desktopicon; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; Flags: unchecked
+; Optional installation of the NDI Runtime — selected by default (omit 'unchecked' so checkbox is checked)
+Name: install_ndi_runtime; Description: "Install NDI Runtime (recommended)"; GroupDescription: "Additional components:";
+Name: install_parsec_vdd; Description: "Install Parsec VDD (recommended)"; GroupDescription: "Additional components:";
 
 [Run]
+; If user selected the task, attempt to install the NDI Runtime and Parsec VDD. We accept agreements to avoid interactive prompts.
+Filename: "cmd.exe"; Parameters: "/C winget install --exact --id NDI.NDIRuntime --accept-package-agreements --accept-source-agreements"; Description: "Install NDI Runtime"; StatusMsg: "Installing NDI Runtime..."; Flags: runhidden waituntilterminated postinstall skipifsilent; Check: IsTaskSelected('install_ndi_runtime')
+Filename: "cmd.exe"; Parameters: "/C winget install --exact --id Parsec.ParsecVDD --accept-package-agreements --accept-source-agreements"; Description: "Install Parsec VDD"; StatusMsg: "Installing Parsec VDD..."; Flags: runhidden waituntilterminated postinstall skipifsilent; Check: IsTaskSelected('install_parsec_vdd')
+
 ; Run the tray app after installation
 Filename: "{app}\Pantalla.exe"; Description: "Launch Pantalla"; Flags: nowait postinstall skipifsilent
 
