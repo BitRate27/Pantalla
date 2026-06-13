@@ -165,7 +165,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="tools\fix_icon.ps1" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

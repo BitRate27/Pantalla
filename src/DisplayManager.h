@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
-#include "ndi-loader.h"
+#include "global.h"
 #include "List.h"
 #include "NDISender.h"
 #include "parsec-vdd.h"
@@ -35,8 +35,11 @@ public:
 	DisplayInfo *getDisplayInfo(std::vector<DisplayInfo *> displays, std::string screenName);
 	bool addVirtualDisplay();
 	bool addNDISender(std::wstring deviceName, std::string ndiName);
-	DisplayInfo *waitForVddDisplay(int vddIndex);
-
+	bool SetMonitorResolution(const std::wstring& deviceName,
+		DWORD width, DWORD height,
+		DWORD refreshRate,
+		DWORD bitDepth);
+	bool SetMonitorPosition(const std::wstring& deviceName, LONG x, LONG y);
 	bool removeNDISender(DisplayInfo *display);
 	// Removal helpers that accept names (safe for UI callers)
 	bool removeNDISenderByNames(const std::wstring &deviceName, const std::string &screenName);

@@ -21,6 +21,6 @@ public:
 
 private:
 	ComPtr<ID3D11Texture2D> m_StagingTex;
-	PerfTimer copyPerfTimer;
-	PerfTimer mapPerfTimer;
+	//PerfTimer copyPerfTimer;
+	//PerfTimer mapPerfTimer;
 };

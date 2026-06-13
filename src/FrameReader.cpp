@@ -15,8 +15,8 @@ bool FrameReader::Init(ID3D11Device *device, UINT width, UINT height)
 	desc.SampleDesc.Count = 1;
 	desc.Usage = D3D11_USAGE_STAGING;
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	copyPerfTimer.init("FrameReader::CopyResource", 100);
-	mapPerfTimer.init("FrameReader::Map", 100);
+	//copyPerfTimer.init("FrameReader::CopyResource", 100);
+	//mapPerfTimer.init("FrameReader::Map", 100);
 
 	return SUCCEEDED(device->CreateTexture2D(&desc, nullptr, &m_StagingTex));
 }
@@ -25,14 +25,14 @@ bool FrameReader::ReadPixels(ID3D11DeviceContext *ctx, ID3D11Texture2D *gpuTex, 
 			     NDIlib_video_frame_v2_t &ndi_frame)
 {
 	// Copy GPU texture -> staging (CPU-readable)
-	copyPerfTimer.start();
+	//copyPerfTimer.start();
 	ctx->CopyResource(m_StagingTex.Get(), gpuTex);
-	copyPerfTimer.end();
+	//copyPerfTimer.end();
 
-	mapPerfTimer.start();
+	//mapPerfTimer.start();
 	D3D11_MAPPED_SUBRESOURCE mapped = {};
 	HRESULT hr = ctx->Map(m_StagingTex.Get(), 0, D3D11_MAP_READ, 0, &mapped);
-	mapPerfTimer.end();
+	//mapPerfTimer.end();
 	if (FAILED(hr))
 		return false;
 

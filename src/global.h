@@ -6,6 +6,9 @@ extern std::atomic<bool> g_Running;
 extern std::atomic<bool> g_SessionRunning;
 extern void log_file(const char *fmt, ...);
 extern void close_log();
+extern const wchar_t* SETTINGS_DIR;
+extern const wchar_t* LOG_FILE_DIR;
+extern const wchar_t* SETTINGS_FILE;
 class PerfTimer {
 public:
 	PerfTimer() : name_(""), frame_counter_(0), report_interval_(100), min_ns_(INT64_MAX), max_ns_(0), sum_ns_(0) {}

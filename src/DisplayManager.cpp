@@ -27,9 +27,6 @@
 #include "parsec-vdd.h"
 #include "json.hpp"
 
-static const wchar_t *SETTINGS_DIR = L"C:\\ProgramData\\VirtualNDIDisplay";
-static const wchar_t *SETTINGS_FILE = L"C:\\ProgramData\\VirtualNDIDisplay\\settings.json";
-
 DisplayManager::DisplayManager() : m_displays(), m_virtualDisplays(), m_displayMonitorRunning(false), m_displayMonitorThread()
 {
 	// Check driver status.
@@ -302,7 +299,60 @@ void DisplayManager::changeScreenName(DisplayInfo *display, std::string screenNa
 		display->ndiSender = new NDISender(display->deviceName, display->screenName);
 	}
 }
+bool DisplayManager::SetMonitorResolution(const std::wstring& deviceName,
+	DWORD width, DWORD height,
+	DWORD refreshRate = 60,
+	DWORD bitDepth = 32)
+{
+	DEVMODE dm = {};
+	dm.dmSize = sizeof(DEVMODE);
 
+	// Read current settings first so unchanged fields stay valid
+	if (!EnumDisplaySettingsEx(deviceName.c_str(), ENUM_CURRENT_SETTINGS, &dm, 0))
+		return false;
+
+	dm.dmPelsWidth = width;
+	dm.dmPelsHeight = height;
+	dm.dmDisplayFrequency = refreshRate;
+	dm.dmBitsPerPel = bitDepth;
+	dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT |
+		DM_DISPLAYFREQUENCY | DM_BITSPERPEL;
+
+	// Test first — avoids a jarring failed switch
+	LONG result = ChangeDisplaySettingsEx(deviceName.c_str(), &dm,
+		nullptr, CDS_TEST, nullptr);
+	if (result != DISP_CHANGE_SUCCESSFUL)
+		return false;
+
+	// Apply and persist to registry
+	result = ChangeDisplaySettingsEx(deviceName.c_str(), &dm,
+		nullptr, CDS_UPDATEREGISTRY | CDS_NORESET,
+		nullptr);
+	return result == DISP_CHANGE_SUCCESSFUL;
+}
+bool DisplayManager::SetMonitorPosition(const std::wstring& deviceName, LONG x, LONG y) 
+{
+	DEVMODE dm = {};
+	dm.dmSize = sizeof(DEVMODE);
+
+	if (!EnumDisplaySettingsEx(deviceName.c_str(), ENUM_CURRENT_SETTINGS, &dm, 0))
+		return false;
+
+	dm.dmPosition.x = x;
+	dm.dmPosition.y = y;
+	dm.dmFields = DM_POSITION;
+
+	LONG result = ChangeDisplaySettingsEx(deviceName.c_str(), &dm,
+		nullptr,
+		CDS_UPDATEREGISTRY | CDS_NORESET,
+		nullptr);
+	return result == DISP_CHANGE_SUCCESSFUL;
+}
+
+// After staging all monitors, commit the layout:
+void CommitDisplayChanges() {
+	ChangeDisplaySettingsEx(nullptr, nullptr, nullptr, 0, nullptr);
+}
 bool DisplayManager::removeVirtualDisplay(DisplayInfo *display)
 {
 
@@ -386,6 +436,18 @@ void DisplayManager::displayMonitorThread()
 									display->screenName = current_screenNames[i];
 									display->deviceName = current_deviceNames[i];
 									SaveSettings();
+									break;
+								}
+							} else if (display->deviceName == L"" && (strncmp(display->screenName.c_str(), "ParsecVDA", 9) == 0)) {
+								log_file("Found saved virtual display %s\n",
+									 current_screenNames[i].c_str());
+								{
+									std::lock_guard<std::recursive_mutex> lock(
+										m_mutex);
+									display->deviceName = current_deviceNames[i];
+									display->screenName = current_screenNames[i];
+									SaveSettings();
+									break;
 								}
 							}
 						}
@@ -396,21 +458,21 @@ void DisplayManager::displayMonitorThread()
 			m_deviceNames = current_deviceNames;
 		} else {
 			for (auto &display : m_displays) {
-				if (display->sendNDI && display->ndiSender == nullptr && display->screenName != "") {
+				if (display->sendNDI && display->ndiSender == nullptr && display->screenName != "" && display->deviceName != L"") {
 					std::lock_guard<std::recursive_mutex> lock(m_mutex);
 					NDISender *ndiSender = new NDISender(display->deviceName, display->screenName);
 					display->ndiSender = ndiSender;
 				}
             }
 			for (auto &display : m_virtualDisplays) {
-				if (display->sendNDI && display->ndiSender == nullptr && display->screenName != "") {
+				if (display->sendNDI && display->ndiSender == nullptr && display->screenName != "" && display->deviceName != L"") {
 					std::lock_guard<std::recursive_mutex> lock(m_mutex);
 					NDISender *ndiSender = new NDISender(display->deviceName, display->screenName);
 					display->ndiSender = ndiSender;
 				}
 			}
 		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 };
 
@@ -440,7 +502,7 @@ void DisplayManager::SaveSettings()
 		}
 		// Persist the Start on Windows Startup setting
 		j["startOnWindowsStartup"] = m_startOnWindowsStartup;
-		std::ofstream ofs("C:/ProgramData/Pantalla/settings.json");
+		std::ofstream ofs(SETTINGS_FILE);
 		ofs << j.dump(4);
 		ofs.close();
 		log_file("Saved settings to %ls\n", SETTINGS_FILE);
@@ -457,7 +519,7 @@ void DisplayManager::LoadSettings()
 			log_file("No settings file found\n");
 			return;
 		}
-		std::ifstream ifs("C:/ProgramData/Pantalla/settings.json");
+		std::ifstream ifs(SETTINGS_FILE);
 		::nlohmann::json j;
 		ifs >> j;
 		ifs.close();
@@ -508,10 +570,79 @@ void DisplayManager::getDisplaysFromSettings(::nlohmann::json &j, const std::str
 				}
 			}
 			if (!info) {
-				info = new DisplayInfo{ vddIndex, deviceName, screenName, ndiSender, sendNDI };
+				info = new DisplayInfo{ vddIndex, L"", screenName, ndiSender, sendNDI};
 				displays.push_back(info);
 			}
 		}
 	}
 	return;
+}
+
+struct MonitorConfig {
+	std::wstring deviceName;
+	DEVMODE      devMode;
+	bool         isPrimary;
+};
+
+std::vector<MonitorConfig> GetAllMonitors() {
+	std::vector<MonitorConfig> monitors;
+	DISPLAY_DEVICE dd = {};
+	dd.cb = sizeof(dd);
+
+	for (DWORD i = 0; EnumDisplayDevices(nullptr, i, &dd, 0); ++i) {
+		if (!(dd.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)) {
+			dd = {}; dd.cb = sizeof(dd);
+			continue;
+		}
+
+		MonitorConfig cfg;
+		cfg.deviceName = dd.DeviceName;
+		cfg.isPrimary = (dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0;
+		cfg.devMode = {};
+		cfg.devMode.dmSize = sizeof(DEVMODE);
+
+		EnumDisplaySettingsEx(dd.DeviceName, ENUM_CURRENT_SETTINGS, &cfg.devMode, 0);
+		monitors.push_back(cfg);
+
+		dd = {}; dd.cb = sizeof(dd);
+	}
+	return monitors;
+}
+
+// Extend monitors horizontally left-to-right.
+// Primary monitor stays at (0,0); all others are placed to its right.
+bool ExtendDesktop() {
+	auto monitors = GetAllMonitors();
+	if (monitors.size() < 2) return false;
+
+	// Put primary first so it anchors at (0,0)
+	std::stable_partition(monitors.begin(), monitors.end(),
+		[](const MonitorConfig& m) { return m.isPrimary; });
+
+	LONG xOffset = 0;
+
+	for (auto& mon : monitors) {
+		DEVMODE dm = mon.devMode;   // already populated from ENUM_CURRENT_SETTINGS
+		dm.dmFields = DM_POSITION;
+
+		dm.dmPosition.x = xOffset;
+		dm.dmPosition.y = 0;
+
+		LONG result = ChangeDisplaySettingsEx(
+			mon.deviceName.c_str(), &dm,
+			nullptr, CDS_UPDATEREGISTRY | CDS_NORESET, nullptr);
+
+		if (result != DISP_CHANGE_SUCCESSFUL) {
+			std::wcerr << L"Failed to stage: " << mon.deviceName
+				<< L" (code " << result << L")\n";
+			return false;
+		}
+
+		// Next monitor starts after this one's width
+		xOffset += static_cast<LONG>(dm.dmPelsWidth);
+	}
+
+	// Single atomic commit
+	LONG result = ChangeDisplaySettingsEx(nullptr, nullptr, nullptr, 0, nullptr);
+	return result == DISP_CHANGE_SUCCESSFUL;
 }

@@ -8,6 +8,10 @@ const NDIlib_v6* ndiLib = nullptr;
 std::atomic<bool> g_Running = true;
 std::atomic<bool> g_SessionRunning = false;
 static FILE *log_fp = nullptr;
+const wchar_t* SETTINGS_DIR = L"C:\\ProgramData\\Pantalla\\";
+const wchar_t* LOG_FILE_DIR = SETTINGS_DIR;
+const wchar_t* SETTINGS_FILE = L"C:\\ProgramData\\Pantalla\\settings.json";
+
 void close_log()
 {
 	if (log_fp) {
@@ -47,10 +51,10 @@ void log_file(const char *fmt, ...)
 }
 
 // Open log file
-static void open_log_file(std::wstring /*ignored_path*/)
+static void open_log_file()
 {
 	// Use program data folder for logs
-	std::filesystem::path dirPath(L"C:/ProgramData/Pantalla");
+	std::filesystem::path dirPath(LOG_FILE_DIR);
 	try {
 		if (!std::filesystem::exists(dirPath)) {
 			std::filesystem::create_directories(dirPath);
@@ -105,21 +109,7 @@ static void open_log_file(std::wstring /*ignored_path*/)
 }
 int main(int argc, char *argv[])
 {
-	WCHAR modulePath[MAX_PATH] = {0};
-	if (GetModuleFileNameW(NULL, modulePath, MAX_PATH) >0) {
-		// Extract directory
-		WCHAR dirPath[MAX_PATH] = {0};
-		wcscpy_s(dirPath, modulePath);
-		WCHAR *lastSlash = wcsrchr(dirPath, L'\\');
-		if (lastSlash) {
-			*lastSlash = L'\0';
-		} else {
-			// fallback to current directory
-			wcscpy_s(dirPath, L".");
-		}
-
-		open_log_file(dirPath);
-	}
+	open_log_file();
 
 	// Ensure only a single instance of the application is running.
 	HANDLE hInstanceMutex = CreateMutexW(NULL, FALSE, L"Local\\PantallaSingletonMutex");

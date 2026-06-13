@@ -1,30 +1,11 @@
 // VirtualDisplay
 #include <windows.h>
-#include <iostream>
-#include <setupapi.h>
-#include <devguid.h>
-#include <cfgmgr32.h>
 #include "global.h"
-#include "FrameReader.h"
-#include "DXGICapture.h"
-#include "ndi-loader.h"
-#include "parsec-vdd.h"
-#include "List.h"
-#include <thread>
-#include <atomic>
-#include <chrono>
-#include <mutex>
-#include <condition_variable>
-#include <conio.h>
 #include <string>
 #include <vector>
-#include <cwctype>
+#include <Qstring>
 #include <QGuiApplication>
 #include <QScreen>
-#include <QList>
-#include <QString>
-#include <QTimer>
-#include <QMetaObject>
 
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "cfgmgr32.lib")
@@ -79,16 +60,13 @@ std::vector<std::wstring> ListDisplayDevices()
 		// --- Pass2: Enumerate monitors on this adapter ---
 		DISPLAY_DEVICE monitorDevice = {};
 		monitorDevice.cb = sizeof(DISPLAY_DEVICE);
-
+		//log_file("Adapter %d: DeviceName='%ls', DeviceID='%ls', StateFlags=0x%08X, Active=%d\n", adapterIndex,
+		//	adapterDevice.DeviceName, adapterDevice.DeviceID, adapterDevice.StateFlags, (adapterDevice.StateFlags & DISPLAY_DEVICE_ACTIVE) != 0);
 		for (DWORD monitorIndex = 0;
-		     EnumDisplayDevices(adapterDevice.DeviceName, monitorIndex, &monitorDevice, 0); ++monitorIndex) {
+		     EnumDisplayDevices(adapterDevice.DeviceName, monitorIndex, &monitorDevice, 0);		++monitorIndex) {
 			// Check for Parsec VDD adapter by DeviceID
-			if (adapterDevice.DeviceID[0] != L'\0') {
-				if (!(wcsstr(adapterDevice.DeviceID, L"Root\\Parsec\\VDA") != nullptr ||
-				      _wcsicmp(adapterDevice.DeviceID, L"Root\\Parsec\\VDA") == 0)) {
-					//continue; // Only want Parsec VDAs
-				}
-			}
+			//log_file("  Monitor %d: DeviceName='%ls', DeviceID='%ls', StateFlags=0x%08X, Active=%d\n", monitorIndex,
+            //    monitorDevice.DeviceName, monitorDevice.DeviceID, monitorDevice.StateFlags, (monitorDevice.StateFlags & DISPLAY_DEVICE_ACTIVE) != 0);
 			if (monitorDevice.StateFlags & DISPLAY_DEVICE_ACTIVE) {
 				// Get MONITORINFOEX::szDevice for this monitorDevice
 				std::wstring miDevice =

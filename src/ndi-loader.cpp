@@ -16,17 +16,9 @@ const NDIlib_v6* load_ndilib()
 		locations << temp_path;
 	}
 #if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
-	// Linux, MacOS
-	// https://github.com/DistroAV/DistroAV/blob/master/lib/ndi/NDI%20SDK%20Documentation.pdf
-	// "6.1 LOCATING THE LIBRARY
-	// ... the redistributable on MacOS is installed within `/usr/local/lib` ..."
-	// Flatpak install will look for the NDI lib in /app/plugins/DistroAV/extra/lib
 	locations << "/usr/lib";
 	locations << "/usr/lib64";
 	locations << "/usr/local/lib";
-#if defined(Q_OS_LINUX)
-	locations << "/app/plugins/DistroAV/extra/lib";
-#endif
 #endif
 	auto lib_path = QString();
 #if defined(Q_OS_LINUX)
@@ -75,7 +67,7 @@ const NDIlib_v6* load_ndilib()
 				return lib_load();
 			}
 			else {
-				log_file( "ERR-405 - Error loading the NDI Library from path: '%s'\n",
+				log_file( "Error loading the NDI Library from path: '%s'\n",
 					QT_TO_UTF8(QDir::toNativeSeparators(lib_path)));
 				log_file( "load_ndilib: ERROR: NDIlib_v6_load not found in loaded library\n");
 				delete loaded_lib;
@@ -83,7 +75,7 @@ const NDIlib_v6* load_ndilib()
 			}
 		}
 		else {
-			log_file( "ERR-402 - Error loading QLibrary with error: '%s'\n",
+			log_file( "Error loading QLibrary with error: '%s'\n",
 				QT_TO_UTF8(loaded_lib->errorString()));
 			log_file( "load_ndilib: ERROR: QLibrary returned the following error: '%s'\n",
 				QT_TO_UTF8(loaded_lib->errorString()));
@@ -93,7 +85,7 @@ const NDIlib_v6* load_ndilib()
 	}
 
 	log_file(
-		"ERR-404 - NDI library not found, DistroAV features will not be available. Read the wiki and install the NDI Libraries.\n");
+		"NDI library not found.\n");
 	log_file( "load_ndilib: ERROR: Can't find the NDI library\n");
 	return nullptr;
 }
