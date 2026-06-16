@@ -1,17 +1,17 @@
-### Pantalla
+# Pantalla
 Output real and virtual displays over NDI
 
 ## User instructions
-# Downloading
+### Downloading
 1. Go to the [release page](https://github.com/BitRate27/Pantalla/releases)
 2. Download PanatallaInstaller.exe
 
-# Installation
+### Installation
 1. Run the PantallaInstaller.exe
 2. May have to turn off Windows Defender Screen or any protection from exes from unknown publishers
 3. Wait for a few moments after installation wizard finishes for the Parsec Driver and NDI Runtime to install
 
-# Usage
+### Usage
 1. Launch Pantalla from the Start menu or Desktop
 2. Left click the ^ "Show hidden icons" on the right side of task bar
 
@@ -33,13 +33,13 @@ Output real and virtual displays over NDI
 - Left click on Exit to terminate all NDI senders and remove any virtual displays
 
 ## Developer Notes
-# Building
+### Building
 1. git clone https://github.com/BitRate27/Panalla.git
 2. cd Pantalla
 3. cmake .
 4. open Pantalla.sln
 
-# Creating Installer
+### Creating Installer
 1. Change Pantalla configuration to Release
 2. Build Pantalla
 3. In a Command Shell: ISCC.exe Pantalla.iss
