@@ -3,8 +3,10 @@ Output real and virtual displays over NDI
 
 ## User instructions
 ### Downloading
-1. Go to the [release page](https://github.com/BitRate27/Pantalla/releases)
-2. Expand the Assets list for the most recent release (first one)
+1. Download latest release [here](https://github.com/BitRate27/Pantalla/releases/latest/download/PantallaInstaller.exe)
+or...
+1. Go to the [releases page](https://github.com/BitRate27/Pantalla/releases)
+2. Expand the Assets list for the release you want (latest one is top of the list)
 3. Download PantallaInstaller.exe
 
 ### Installation
@@ -22,7 +24,7 @@ Output real and virtual displays over NDI
 
 <img width="213" height="154" alt="image" src="https://github.com/user-attachments/assets/dc1a56b7-bf44-4560-b750-be81d0cdb401" />
 
-4. Use this menu to add/remove displays and turn on/off NDI
+4. Use the menu to add/remove displays and turn on/off NDI
 
 <img width="308" height="210" alt="image" src="https://github.com/user-attachments/assets/a8562814-3b7d-4c76-b1ae-bbeeeba20a6a" />
 
