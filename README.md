@@ -17,14 +17,15 @@ Output real and virtual displays over NDI
 
 <img width="165" height="95" alt="image" src="https://github.com/user-attachments/assets/bf839f05-51f7-4ffc-b6e9-a9e0d0250db2" />
 
-4. Right click on the Pantalla icon (white P in red circle)
+3. Right click on the Pantalla icon (white P in red circle)
 
-<img width="185" height="101" alt="image" src="https://github.com/user-attachments/assets/dafa8621-c9d4-4f35-b097-cb5deb7ddbf6" />
+<img width="213" height="154" alt="image" src="https://github.com/user-attachments/assets/dc1a56b7-bf44-4560-b750-be81d0cdb401" />
 
-5. Use this menu to add/remove displays and turn on/off NDI
+4. Use this menu to add/remove displays and turn on/off NDI
 
 <img width="308" height="210" alt="image" src="https://github.com/user-attachments/assets/a8562814-3b7d-4c76-b1ae-bbeeeba20a6a" />
 
+5. Menu options
 - Left click on the NDI with a black background to turn NDI on for that display
 - Left click on the NDI with a green background to turn NDI off for that display
 - Left click on Add Virtual Display to add a new Parsec Virtual Display
