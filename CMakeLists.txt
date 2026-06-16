@@ -37,6 +37,8 @@ add_executable(Pantalla WIN32
     src/DisplayManager.h
     src/List.cpp
     src/List.h
+    src/Settings.cpp
+    src/Settings.h
     src/NDISender.h
     src/NDISender.cpp
 )

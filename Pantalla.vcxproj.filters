@@ -25,6 +25,9 @@
     <ClCompile Include="C:\Users\bgill\source\repos\Pantalla\src\List.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\bgill\source\repos\Pantalla\src\Settings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\bgill\source\repos\Pantalla\src\NDISender.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -61,6 +64,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\bgill\source\repos\Pantalla\src\List.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\bgill\source\repos\Pantalla\src\Settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\bgill\source\repos\Pantalla\src\NDISender.h">

@@ -48,17 +48,13 @@ public:
 	void updateVirtualScreenNames();
 	void changeScreenName(DisplayInfo *display, std::string screenName);
 
-	// persistence
-	void SaveSettings();
-	void LoadSettings();
+	// helper queries
+	bool nameExists(std::vector<std::wstring> list, std::wstring name);
+	bool displayExists(DisplayInfo *display);
 
 	// Start on User Login setting
 	void setStartOnUserLogin(bool v);
 	bool getStartOnUserLogin() const { return m_startOnUserLogin; }
-
-	// helper queries
-	bool nameExists(std::vector<std::wstring> list, std::wstring name);
-	bool displayExists(DisplayInfo *display);
 
 	// load helper
 	void getDisplaysFromSettings(::nlohmann::json &j, const std::string &displayType, std::vector<DisplayInfo *> &displays);
