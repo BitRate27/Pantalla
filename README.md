@@ -4,7 +4,8 @@ Output real and virtual displays over NDI
 ## User instructions
 ### Downloading
 1. Go to the [release page](https://github.com/BitRate27/Pantalla/releases)
-2. Download PanatallaInstaller.exe
+2. Expand the Assets list for the most recent release (first one)
+3. Download PantallaInstaller.exe
 
 ### Installation
 1. Run the PantallaInstaller.exe
@@ -26,16 +27,16 @@ Output real and virtual displays over NDI
 <img width="308" height="210" alt="image" src="https://github.com/user-attachments/assets/a8562814-3b7d-4c76-b1ae-bbeeeba20a6a" />
 
 5. Menu options
-- Left click on the NDI with a black background to turn NDI on for that display
-- Left click on the NDI with a green background to turn NDI off for that display
-- Left click on Add virtual display to add a new Parsec Virtual Display
-- Left click on the red x to remove the last virtual display added
-- Left click on Settings for saved settings and to see links and copyrights
-- Left click on Exit to terminate all NDI senders and remove any virtual displays
+- Click on the NDI with a black background to turn NDI on for that display
+- Click on the NDI with a green background to turn NDI off for that display
+- Click on Add virtual display to add a new Parsec Virtual Display
+- Click on the red x to remove the last virtual display added
+- Click on Settings for saved settings and to see links and copyrights
+- Click on Exit to terminate all NDI senders and remove any virtual displays
 
 ## Developer Notes
 ### Building
-1. git clone https://github.com/BitRate27/Panalla.git
+1. git clone https://github.com/BitRate27/Pantalla.git
 2. cd Pantalla
 3. cmake .
 4. open Pantalla.sln
