@@ -1,6 +1,7 @@
-# Pantalla
+### Pantalla
 Output real and virtual displays over NDI
 
+## User instructions
 # Downloading
 1. Go to the [release page](https://github.com/BitRate27/Pantalla/releases)
 2. Download PanatallaInstaller.exe
@@ -12,15 +13,26 @@ Output real and virtual displays over NDI
 
 # Usage
 1. Launch Pantalla from the Start menu or Desktop
-2. Expand the System Tray with the ^ on the right side of 
+2. Left click the ^ "Show hidden icons" on the right side of task bar
+
+<img width="165" height="95" alt="image" src="https://github.com/user-attachments/assets/bf839f05-51f7-4ffc-b6e9-a9e0d0250db2" />
+
+4. Right click on the Pantalla icon (white P in red circle)
+
+<img width="185" height="101" alt="image" src="https://github.com/user-attachments/assets/dafa8621-c9d4-4f35-b097-cb5deb7ddbf6" />
+
+5. Use this menu to add/remove displays and turn on/off NDI
+
 <img width="308" height="210" alt="image" src="https://github.com/user-attachments/assets/a8562814-3b7d-4c76-b1ae-bbeeeba20a6a" />
 
+- Left click on the NDI with a black background to turn NDI on for that display
+- Left click on the NDI with a green background to turn NDI off for that display
+- Left click on Add Virtual Display to add a new Parsec Virtual Display
+- Left click on the red x to remove the last virtual display added
+- Left click on Settings for saved settings and to see links and copyrights
+- Left click on Exit to terminate all NDI senders and remove any virtual displays
 
-
-# Overview
-Pantalla is a small Windows tray application that manages virtual displays and publishes them via NDI. The tray UI and behavior are implemented in `src/TrayApp.cpp` and the display logic is handled by `DisplayManager`.
 ## Developer Notes
-
 # Building
 1. git clone https://github.com/BitRate27/Panalla.git
 2. cd Pantalla
