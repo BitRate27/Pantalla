@@ -27,19 +27,73 @@
 #include "parsec-vdd.h"
 #include "json.hpp"
 
+// Helper to add/remove a Run key for current user
+static bool SetRunOnStartup(bool enable)
+{
+	// Use HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+	HKEY hKey = NULL;
+	LONG res = RegOpenKeyExW(HKEY_CURRENT_USER, LR"(Software\Microsoft\Windows\CurrentVersion\Run)", 0, KEY_WRITE, &hKey);
+	if (res != ERROR_SUCCESS)
+	{
+		log_file("Failed to open Run key: %ld\n", res);
+		return false;
+	}
+
+	std::wstring valueName = L"Pantalla";
+	if (enable)
+	{
+		// Get path to this executable
+		WCHAR modulePath[MAX_PATH] = {0};
+		if (GetModuleFileNameW(NULL, modulePath, MAX_PATH) == 0)
+		{
+			log_file("GetModuleFileNameW failed when setting startup: %ld\n", GetLastError());
+			RegCloseKey(hKey);
+			return false;
+		}
+		// Quote the path in case it contains spaces
+		std::wstring cmd = L"\"" + std::wstring(modulePath) + L"\"";
+		// Optionally add a flag like /minimized ï¿½ not used here
+		DWORD dataSize = static_cast<DWORD>((cmd.size() + 1) * sizeof(WCHAR));
+		res = RegSetValueExW(hKey, valueName.c_str(), 0, REG_SZ, reinterpret_cast<const BYTE *>(cmd.c_str()), dataSize);
+		if (res != ERROR_SUCCESS)
+		{
+			log_file("Failed to set Run value: %ld\n", res);
+			RegCloseKey(hKey);
+			return false;
+		}
+		RegCloseKey(hKey);
+		return true;
+	}
+	else
+	{
+		res = RegDeleteValueW(hKey, valueName.c_str());
+		if (res != ERROR_SUCCESS && res != ERROR_FILE_NOT_FOUND)
+		{
+			log_file("Failed to delete Run value: %ld\n", res);
+			RegCloseKey(hKey);
+			return false;
+		}
+		RegCloseKey(hKey);
+		log_file("Successfully removed Run on startup entry.\n");
+		return true;
+	}
+}
+
 DisplayManager::DisplayManager() : m_displays(), m_virtualDisplays(), m_displayMonitorRunning(false), m_displayMonitorThread()
 {
 	// Check driver status.
 	parsec_vdd::DeviceStatus status =
 		parsec_vdd::QueryDeviceStatus(&parsec_vdd::VDD_CLASS_GUID, parsec_vdd::VDD_HARDWARE_ID);
-	if (status != parsec_vdd::DEVICE_OK) {
+	if (status != parsec_vdd::DEVICE_OK)
+	{
 		log_file("Parsec VDD device is not OK, got status %d.\n", status);
 		return;
 	}
 
 	// Obtain device handle.
 	m_vdd = parsec_vdd::OpenDeviceHandle(&parsec_vdd::VDD_ADAPTER_GUID);
-	if (m_vdd == NULL || m_vdd == INVALID_HANDLE_VALUE) {
+	if (m_vdd == NULL || m_vdd == INVALID_HANDLE_VALUE)
+	{
 		log_file("Failed to obtain the device handle.\n");
 		return;
 	}
@@ -47,22 +101,24 @@ DisplayManager::DisplayManager() : m_displays(), m_virtualDisplays(), m_displayM
 	// Side thread for updating vdd.
 	// The thread will be stopped in the d-tor.
 	m_update_running = true;
-	m_update_thread = std::thread([this] {
+	m_update_thread = std::thread([this]
+								  {
 		log_file("Starting VDD update thread...\n");
 		while (this->m_update_running) {
 			parsec_vdd::VddUpdate(this->m_vdd);
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
-		log_file("Update not running\n");
-	});
+		log_file("Update not running\n"); });
 	m_update_thread.detach();
 
 	m_screenNames = ListOBSProjectorMonitorsFormatted();
-    m_deviceNames = ListDisplayDevices();
+	m_deviceNames = ListDisplayDevices();
 
-	if (m_screenNames.size() == m_deviceNames.size()) {
-        for (int i = 0; i < m_screenNames.size(); i++) {
-			DisplayInfo* info = new DisplayInfo{ -1, m_deviceNames[i], m_screenNames[i], nullptr, false };
+	if (m_screenNames.size() == m_deviceNames.size())
+	{
+		for (int i = 0; i < m_screenNames.size(); i++)
+		{
+			DisplayInfo *info = new DisplayInfo{-1, m_deviceNames[i], m_screenNames[i], nullptr, false};
 			m_displays.push_back(info);
 		}
 	}
@@ -78,21 +134,26 @@ DisplayManager::~DisplayManager()
 {
 	log_file("Destroying DisplayManager\n");
 	// Stop display monitor thread if running
-	if (m_displayMonitorRunning) {
+	if (m_displayMonitorRunning)
+	{
 		m_displayMonitorRunning = false;
 		std::this_thread::sleep_for(std::chrono::milliseconds(101));
-		if (m_displayMonitorThread.joinable()) {
+		if (m_displayMonitorThread.joinable())
+		{
 			m_displayMonitorThread.join();
 		}
 	}
-	for (auto display : getDisplays()) {
-		if (display->ndiSender) {
+	for (auto display : getDisplays())
+	{
+		if (display->ndiSender)
+		{
 			log_file("Deleting NDISender for display %s\n", display->screenName.c_str());
 			delete display->ndiSender;
 		}
-		if (display->vddIndex != -1) {
+		if (display->vddIndex != -1)
+		{
 			log_file("Removing VDD display for %s with index %d\n", display->screenName.c_str(),
-				 display->vddIndex);
+					 display->vddIndex);
 			parsec_vdd::VddRemoveDisplay(m_vdd, display->vddIndex);
 		}
 		delete display;
@@ -118,8 +179,10 @@ bool DisplayManager::displayExists(DisplayInfo *display)
 
 DisplayInfo *DisplayManager::getDisplayInfo(std::vector<DisplayInfo *> displays, std::string screenName)
 {
-	for (auto display : displays) {
-		if (display->screenName == screenName) {
+	for (auto display : displays)
+	{
+		if (display->screenName == screenName)
+		{
 			return display;
 		}
 	}
@@ -129,11 +192,13 @@ std::vector<DisplayInfo *> DisplayManager::getDisplays()
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
 	std::vector<DisplayInfo *> allDisplays;
-	for (const auto d : m_displays) {
+	for (const auto d : m_displays)
+	{
 		if (displayExists(d))
 			allDisplays.push_back(d);
 	}
-	for (const auto d : m_virtualDisplays) {
+	for (const auto d : m_virtualDisplays)
+	{
 		if (displayExists(d))
 			allDisplays.push_back(d);
 	}
@@ -145,8 +210,10 @@ std::vector<DisplaySnapshot> DisplayManager::getDisplaySnapshots()
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
 	std::vector<DisplaySnapshot> snaps;
-	for (const auto d : m_displays) {
-		if (!displayExists(d)) continue;
+	for (const auto d : m_displays)
+	{
+		if (!displayExists(d))
+			continue;
 		DisplaySnapshot s;
 		s.vddIndex = d->vddIndex;
 		s.deviceName = d->deviceName;
@@ -155,8 +222,10 @@ std::vector<DisplaySnapshot> DisplayManager::getDisplaySnapshots()
 		s.hasSender = (d->ndiSender != nullptr);
 		snaps.push_back(std::move(s));
 	}
-	for (const auto d : m_virtualDisplays) {
-		if (!displayExists(d)) continue;
+	for (const auto d : m_virtualDisplays)
+	{
+		if (!displayExists(d))
+			continue;
 		DisplaySnapshot s;
 		s.vddIndex = d->vddIndex;
 		s.deviceName = d->deviceName;
@@ -172,13 +241,17 @@ std::vector<DisplaySnapshot> DisplayManager::getDisplaySnapshots()
 bool DisplayManager::removeNDISenderByNames(const std::wstring &deviceName, const std::string &screenName)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
-	for (const auto &display : m_displays) {
-		if (display->deviceName == deviceName && display->screenName == screenName) {
+	for (const auto &display : m_displays)
+	{
+		if (display->deviceName == deviceName && display->screenName == screenName)
+		{
 			return removeNDISender(display);
 		}
 	}
-	for (const auto &display : m_virtualDisplays) {
-		if (display->deviceName == deviceName && display->screenName == screenName) {
+	for (const auto &display : m_virtualDisplays)
+	{
+		if (display->deviceName == deviceName && display->screenName == screenName)
+		{
 			return removeNDISender(display);
 		}
 	}
@@ -189,17 +262,22 @@ bool DisplayManager::removeNDISenderByNames(const std::wstring &deviceName, cons
 bool DisplayManager::removeVirtualDisplayByNames(const std::wstring &deviceName, const std::string &screenName)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
-	for (const auto &display : m_virtualDisplays) {
-		if (display->deviceName == deviceName && display->screenName == screenName) {
+	for (const auto &display : m_virtualDisplays)
+	{
+		if (display->deviceName == deviceName && display->screenName == screenName)
+		{
 			// call existing removal logic which will handle ndiSender deletion and RemoveDisplay
 			removeVirtualDisplay(display);
 			return true;
 		}
 	}
-	for (const auto &display : m_displays) {
-		if (display->deviceName == deviceName && display->screenName == screenName) {
+	for (const auto &display : m_displays)
+	{
+		if (display->deviceName == deviceName && display->screenName == screenName)
+		{
 			// If it's a non-virtual display, fall back to removing NDI sender if present
-			if (display->ndiSender) {
+			if (display->ndiSender)
+			{
 				return removeNDISender(display);
 			}
 			break;
@@ -224,22 +302,27 @@ bool DisplayManager::addVirtualDisplay()
 bool DisplayManager::addNDISender(std::wstring deviceName, std::string ndiName)
 {
 	log_file("addNDISender(names): Creating DisplayInfo for %s with device %ls\n", ndiName.c_str(),
-		 deviceName.c_str());
+			 deviceName.c_str());
 	bool found = false;
 	NDISender *ndiSender = new NDISender(deviceName, ndiName);
 	{
 		std::lock_guard<std::recursive_mutex> lock(m_mutex);
-		for (const auto &display : m_displays) {
-			if (display->deviceName == deviceName) {
+		for (const auto &display : m_displays)
+		{
+			if (display->deviceName == deviceName)
+			{
 				display->ndiSender = ndiSender;
 				display->sendNDI = true;
 				found = true;
 				break;
 			}
 		}
-		if (!found) {
-			for (const auto &display : m_virtualDisplays) {
-				if (display->deviceName == deviceName) {
+		if (!found)
+		{
+			for (const auto &display : m_virtualDisplays)
+			{
+				if (display->deviceName == deviceName)
+				{
 					display->ndiSender = ndiSender;
 					display->sendNDI = true;
 					found = true;
@@ -247,12 +330,14 @@ bool DisplayManager::addNDISender(std::wstring deviceName, std::string ndiName)
 				}
 			}
 		}
-		if (found) {
+		if (found)
+		{
 			// persist the change
 			SaveSettings();
 		}
 	}
-	if (!found) {
+	if (!found)
+	{
 		// if nothing matched, delete the created sender to avoid leak
 		delete ndiSender;
 	}
@@ -263,7 +348,8 @@ bool DisplayManager::removeNDISender(DisplayInfo *display)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
 	// If the DisplayInfo has an ndiSender, delete it
-	if (display->ndiSender) {
+	if (display->ndiSender)
+	{
 		delete display->ndiSender;
 		display->ndiSender = nullptr;
 		display->sendNDI = false;
@@ -280,9 +366,12 @@ void DisplayManager::updateVirtualScreenNames()
 	if (current_deviceNames.size() != current_screenNames.size())
 		return;
 
-	for (int i = 0; i < current_deviceNames.size(); i++) {
-		for (auto &d : m_virtualDisplays) {
-			if ((d->deviceName == current_deviceNames[i]) && (d->screenName != current_screenNames[i])) {
+	for (int i = 0; i < current_deviceNames.size(); i++)
+	{
+		for (auto &d : m_virtualDisplays)
+		{
+			if ((d->deviceName == current_deviceNames[i]) && (d->screenName != current_screenNames[i]))
+			{
 				changeScreenName(d, current_screenNames[i]);
 				break;
 			}
@@ -294,15 +383,17 @@ void DisplayManager::changeScreenName(DisplayInfo *display, std::string screenNa
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
 	display->screenName = screenName;
-	if (display->ndiSender != nullptr) {
+	if (display->ndiSender != nullptr)
+	{
 		delete display->ndiSender;
 		display->ndiSender = new NDISender(display->deviceName, display->screenName);
 	}
 }
-bool DisplayManager::SetMonitorResolution(const std::wstring& deviceName,
-	DWORD width, DWORD height,
-	DWORD refreshRate = 60,
-	DWORD bitDepth = 32)
+
+bool DisplayManager::setMonitorResolution(const std::wstring &deviceName,
+										  DWORD width, DWORD height,
+										  DWORD refreshRate = 60,
+										  DWORD bitDepth = 32)
 {
 	DEVMODE dm = {};
 	dm.dmSize = sizeof(DEVMODE);
@@ -316,21 +407,22 @@ bool DisplayManager::SetMonitorResolution(const std::wstring& deviceName,
 	dm.dmDisplayFrequency = refreshRate;
 	dm.dmBitsPerPel = bitDepth;
 	dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT |
-		DM_DISPLAYFREQUENCY | DM_BITSPERPEL;
+				  DM_DISPLAYFREQUENCY | DM_BITSPERPEL;
 
-	// Test first — avoids a jarring failed switch
+	// Test first ï¿½ avoids a jarring failed switch
 	LONG result = ChangeDisplaySettingsEx(deviceName.c_str(), &dm,
-		nullptr, CDS_TEST, nullptr);
+										  nullptr, CDS_TEST, nullptr);
 	if (result != DISP_CHANGE_SUCCESSFUL)
 		return false;
 
 	// Apply and persist to registry
 	result = ChangeDisplaySettingsEx(deviceName.c_str(), &dm,
-		nullptr, CDS_UPDATEREGISTRY | CDS_NORESET,
-		nullptr);
+									 nullptr, CDS_UPDATEREGISTRY | CDS_NORESET,
+									 nullptr);
 	return result == DISP_CHANGE_SUCCESSFUL;
 }
-bool DisplayManager::SetMonitorPosition(const std::wstring& deviceName, LONG x, LONG y) 
+
+bool DisplayManager::setMonitorPosition(const std::wstring &deviceName, LONG x, LONG y)
 {
 	DEVMODE dm = {};
 	dm.dmSize = sizeof(DEVMODE);
@@ -343,32 +435,35 @@ bool DisplayManager::SetMonitorPosition(const std::wstring& deviceName, LONG x, 
 	dm.dmFields = DM_POSITION;
 
 	LONG result = ChangeDisplaySettingsEx(deviceName.c_str(), &dm,
-		nullptr,
-		CDS_UPDATEREGISTRY | CDS_NORESET,
-		nullptr);
+										  nullptr,
+										  CDS_UPDATEREGISTRY | CDS_NORESET,
+										  nullptr);
 	return result == DISP_CHANGE_SUCCESSFUL;
 }
 
 // After staging all monitors, commit the layout:
-void CommitDisplayChanges() {
+void CommitDisplayChanges()
+{
 	ChangeDisplaySettingsEx(nullptr, nullptr, nullptr, 0, nullptr);
 }
 bool DisplayManager::removeVirtualDisplay(DisplayInfo *display)
 {
 
 	// If the DisplayInfo has an ndiSender, delete it
-	if (display->ndiSender) {
+	if (display->ndiSender)
+	{
 		delete display->ndiSender;
 		display->ndiSender = nullptr;
 		display->sendNDI = false;
 	}
-	if (display->vddIndex != -1) {
+	if (display->vddIndex != -1)
+	{
 		log_file("Removing VDD display for %s with index %d\n", display->screenName.c_str(), display->vddIndex);
 		parsec_vdd::VddRemoveDisplay(m_vdd, display->vddIndex);
 		display->vddIndex = -1;
 	}
 	m_virtualDisplays.erase(std::remove(m_virtualDisplays.begin(), m_virtualDisplays.end(), display),
-				m_virtualDisplays.end());
+							m_virtualDisplays.end());
 	delete display;
 	SaveSettings();
 	return false;
@@ -377,59 +472,75 @@ bool DisplayManager::removeVirtualDisplay(DisplayInfo *display)
 void DisplayManager::displayMonitorThread()
 {
 	log_file("Starting display monitor thread2...\n");
-	while (m_displayMonitorRunning) {
+	while (m_displayMonitorRunning)
+	{
 		auto current_screenNames = ListOBSProjectorMonitorsFormatted();
-		if (current_screenNames.size() != m_screenNames.size()) {
+		if (current_screenNames.size() != m_screenNames.size())
+		{
 			auto current_deviceNames = ListDisplayDevices();
 			log_file("----Screen count changed! Previous: %d, Current: %d\n", (int)m_screenNames.size(),
-				 (int)current_screenNames.size());
-			for (int i = 0; i < current_screenNames.size(); i++) {
+					 (int)current_screenNames.size());
+			for (int i = 0; i < current_screenNames.size(); i++)
+			{
 				log_file("Detected screen: %s\n", current_screenNames[i].c_str());
 			}
-			for (int i = 0; i < current_deviceNames.size(); i++) {
+			for (int i = 0; i < current_deviceNames.size(); i++)
+			{
 				log_file("Detected device: %ls\n", current_deviceNames[i].c_str());
 			}
 			log_file("----\n");
-			if (current_screenNames.size() != current_deviceNames.size()) {
+			if (current_screenNames.size() != current_deviceNames.size())
+			{
 				log_file(
 					"Warning: screen count and device count do not match! Screens: %d, Devices: %d\n",
 					(int)current_screenNames.size(), (int)current_deviceNames.size());
 				break;
 			}
 			// Find the new screen that was added
-			for (int i = 0; i < current_screenNames.size(); i++) {
+			for (int i = 0; i < current_screenNames.size(); i++)
+			{
 				if (std::find(m_screenNames.begin(), m_screenNames.end(), current_screenNames[i]) ==
-				    m_screenNames.end()) {
+					m_screenNames.end())
+				{
 					log_file("New screen detected: %s device: %ls\n",
-						 current_screenNames[i].c_str(), current_deviceNames[i].c_str());
+							 current_screenNames[i].c_str(), current_deviceNames[i].c_str());
 					if (current_screenNames[i].find("Parsec") ==
-					    std::string::npos) { // not a Parsec display
+						std::string::npos)
+					{ // not a Parsec display
 						log_file("New screen is not a Parsec display\n");
 						auto display = getDisplayInfo(m_displays, current_screenNames[i]);
-						if (display == nullptr) {
+						if (display == nullptr)
+						{
 							log_file("Adding it as a non-NDI sender\n");
 							DisplayInfo *info = new DisplayInfo{-1, current_deviceNames[i],
-											    current_screenNames[i],
-											    nullptr, false};
+																current_screenNames[i],
+																nullptr, false};
 							{
 								std::lock_guard<std::recursive_mutex> lock(m_mutex);
 								m_displays.push_back(info);
 								SaveSettings();
 							}
-						} else {
-							if (display->sendNDI) {
+						}
+						else
+						{
+							if (display->sendNDI)
+							{
 								log_file("Turning on NDI for newly added display\n");
 								std::lock_guard<std::recursive_mutex> lock(m_mutex);
 								addNDISender(current_deviceNames[i],
-									     current_screenNames[i]);
+											 current_screenNames[i]);
 							}
 						}
-					} else {
+					}
+					else
+					{
 						log_file("New screen is a Parsec display\n");
-						for (const auto &display : m_virtualDisplays) {
-							if (display->screenName == "" && display->vddIndex > -1) {
+						for (const auto &display : m_virtualDisplays)
+						{
+							if (display->screenName == "" && display->vddIndex > -1)
+							{
 								log_file("Adding virtual screen %s\n",
-									 current_screenNames[i].c_str());
+										 current_screenNames[i].c_str());
 								{
 									std::lock_guard<std::recursive_mutex> lock(
 										m_mutex);
@@ -438,9 +549,11 @@ void DisplayManager::displayMonitorThread()
 									SaveSettings();
 									break;
 								}
-							} else if (display->deviceName == L"" && (strncmp(display->screenName.c_str(), "ParsecVDA", 9) == 0)) {
+							}
+							else if (display->deviceName == L"" && (strncmp(display->screenName.c_str(), "ParsecVDA", 9) == 0))
+							{
 								log_file("Found saved virtual display %s\n",
-									 current_screenNames[i].c_str());
+										 current_screenNames[i].c_str());
 								{
 									std::lock_guard<std::recursive_mutex> lock(
 										m_mutex);
@@ -456,16 +569,22 @@ void DisplayManager::displayMonitorThread()
 			}
 			m_screenNames = current_screenNames;
 			m_deviceNames = current_deviceNames;
-		} else {
-			for (auto &display : m_displays) {
-				if (display->sendNDI && display->ndiSender == nullptr && display->screenName != "" && display->deviceName != L"") {
+		}
+		else
+		{
+			for (auto &display : m_displays)
+			{
+				if (display->sendNDI && display->ndiSender == nullptr && display->screenName != "" && display->deviceName != L"")
+				{
 					std::lock_guard<std::recursive_mutex> lock(m_mutex);
 					NDISender *ndiSender = new NDISender(display->deviceName, display->screenName);
 					display->ndiSender = ndiSender;
 				}
-            }
-			for (auto &display : m_virtualDisplays) {
-				if (display->sendNDI && display->ndiSender == nullptr && display->screenName != "" && display->deviceName != L"") {
+			}
+			for (auto &display : m_virtualDisplays)
+			{
+				if (display->sendNDI && display->ndiSender == nullptr && display->screenName != "" && display->deviceName != L"")
+				{
 					std::lock_guard<std::recursive_mutex> lock(m_mutex);
 					NDISender *ndiSender = new NDISender(display->deviceName, display->screenName);
 					display->ndiSender = ndiSender;
@@ -479,11 +598,13 @@ void DisplayManager::displayMonitorThread()
 void DisplayManager::SaveSettings()
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
-	try {
+	try
+	{
 		std::filesystem::create_directories(SETTINGS_DIR);
 		::nlohmann::json j;
 		j["displays"] = ::nlohmann::json::array();
-		for (const auto &d : m_displays) {
+		for (const auto &d : m_displays)
+		{
 			::nlohmann::json jd;
 			jd["vddIndex"] = d->vddIndex;
 			jd["deviceName"] = std::string(d->deviceName.begin(), d->deviceName.end());
@@ -492,7 +613,8 @@ void DisplayManager::SaveSettings()
 			j["displays"].push_back(jd);
 		}
 		j["virtualDisplays"] = ::nlohmann::json::array();
-		for (const auto &d : m_virtualDisplays) {
+		for (const auto &d : m_virtualDisplays)
+		{
 			::nlohmann::json jd;
 			jd["vddIndex"] = d->vddIndex;
 			jd["deviceName"] = std::string(d->deviceName.begin(), d->deviceName.end());
@@ -501,12 +623,14 @@ void DisplayManager::SaveSettings()
 			j["virtualDisplays"].push_back(jd);
 		}
 		// Persist the Start on Windows Startup setting
-		j["startOnWindowsStartup"] = m_startOnWindowsStartup;
+		j["startOnUserLogin"] = m_startOnUserLogin;
 		std::ofstream ofs(SETTINGS_FILE);
 		ofs << j.dump(4);
 		ofs.close();
 		log_file("Saved settings to %ls\n", SETTINGS_FILE);
-	} catch (std::exception &e) {
+	}
+	catch (std::exception &e)
+	{
 		log_file("Failed to save settings: %s\n", e.what());
 	}
 }
@@ -514,8 +638,10 @@ void DisplayManager::SaveSettings()
 void DisplayManager::LoadSettings()
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
-	try {
-		if (!std::filesystem::exists(SETTINGS_FILE)) {
+	try
+	{
+		if (!std::filesystem::exists(SETTINGS_FILE))
+		{
 			log_file("No settings file found\n");
 			return;
 		}
@@ -523,25 +649,30 @@ void DisplayManager::LoadSettings()
 		::nlohmann::json j;
 		ifs >> j;
 		ifs.close();
-		// Load startOnWindowsStartup (default false)
-		m_startOnWindowsStartup = j.value("startOnWindowsStartup", false);
+		// Load startOnUserLogin (default false)
+		m_startOnUserLogin = j.value("startOnUserLogin", false);
 		getDisplaysFromSettings(j, "displays", m_displays);
-		for (const auto &d : m_displays) {
-			if (displayExists(d) && d->sendNDI) {
+		for (const auto &d : m_displays)
+		{
+			if (displayExists(d) && d->sendNDI)
+			{
 				d->ndiSender = new NDISender(d->deviceName, d->screenName);
 			}
 		}
 		getDisplaysFromSettings(j, "virtualDisplays", m_virtualDisplays);
-		for (const auto &d : m_virtualDisplays) {
+		for (const auto &d : m_virtualDisplays)
+		{
 			auto index = parsec_vdd::VddAddDisplay(m_vdd);
 			log_file("Added virtual display for %s with index %d\n", d->screenName.c_str(), index);
 			if (d->vddIndex != index)
 				log_file("Warning: VDD index mismatch for %s. Expected %d, got %d\n",
-					 d->screenName.c_str(), d->vddIndex, index);
+						 d->screenName.c_str(), d->vddIndex, index);
 			d->vddIndex = index;
 		}
 		log_file("Loaded settings from %ls\n", SETTINGS_FILE);
-	} catch (std::exception &e) {
+	}
+	catch (std::exception &e)
+	{
 		log_file("Failed to load settings: %s\n", e.what());
 	}
 }
@@ -549,28 +680,34 @@ void DisplayManager::LoadSettings()
 // getDisplaysFromSettings implementation
 void DisplayManager::getDisplaysFromSettings(::nlohmann::json &j, const std::string &displayType, std::vector<DisplayInfo *> &displays)
 {
-	if (j.contains(displayType)) {
-		for (const auto &jd : j[displayType]) {
+	if (j.contains(displayType))
+	{
+		for (const auto &jd : j[displayType])
+		{
 			int vddIndex = jd.value("vddIndex", -1);
 			std::wstring deviceName;
-			if (jd.contains("deviceName")) {
+			if (jd.contains("deviceName"))
+			{
 				std::string dn = jd["deviceName"].get<std::string>();
 				deviceName.assign(dn.begin(), dn.end());
 			}
 			std::string screenName = jd.value("screenName", std::string());
 			bool sendNDI = jd.value("sendNDI", false);
 			NDISender *ndiSender = nullptr;
-			DisplayInfo* info = nullptr; 
-			for (const auto display : displays) {
-				if (display->deviceName == deviceName) {
+			DisplayInfo *info = nullptr;
+			for (const auto display : displays)
+			{
+				if (display->deviceName == deviceName)
+				{
 					display->sendNDI = sendNDI;
 					display->vddIndex = vddIndex;
 					info = display;
 					break;
 				}
 			}
-			if (!info) {
-				info = new DisplayInfo{ vddIndex, L"", screenName, ndiSender, sendNDI};
+			if (!info)
+			{
+				info = new DisplayInfo{vddIndex, L"", screenName, ndiSender, sendNDI};
 				displays.push_back(info);
 			}
 		}
@@ -578,20 +715,25 @@ void DisplayManager::getDisplaysFromSettings(::nlohmann::json &j, const std::str
 	return;
 }
 
-struct MonitorConfig {
+struct MonitorConfig
+{
 	std::wstring deviceName;
-	DEVMODE      devMode;
-	bool         isPrimary;
+	DEVMODE devMode;
+	bool isPrimary;
 };
 
-std::vector<MonitorConfig> GetAllMonitors() {
+std::vector<MonitorConfig> GetAllMonitors()
+{
 	std::vector<MonitorConfig> monitors;
 	DISPLAY_DEVICE dd = {};
 	dd.cb = sizeof(dd);
 
-	for (DWORD i = 0; EnumDisplayDevices(nullptr, i, &dd, 0); ++i) {
-		if (!(dd.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)) {
-			dd = {}; dd.cb = sizeof(dd);
+	for (DWORD i = 0; EnumDisplayDevices(nullptr, i, &dd, 0); ++i)
+	{
+		if (!(dd.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP))
+		{
+			dd = {};
+			dd.cb = sizeof(dd);
 			continue;
 		}
 
@@ -604,25 +746,30 @@ std::vector<MonitorConfig> GetAllMonitors() {
 		EnumDisplaySettingsEx(dd.DeviceName, ENUM_CURRENT_SETTINGS, &cfg.devMode, 0);
 		monitors.push_back(cfg);
 
-		dd = {}; dd.cb = sizeof(dd);
+		dd = {};
+		dd.cb = sizeof(dd);
 	}
 	return monitors;
 }
 
 // Extend monitors horizontally left-to-right.
 // Primary monitor stays at (0,0); all others are placed to its right.
-bool ExtendDesktop() {
+bool ExtendDesktop()
+{
 	auto monitors = GetAllMonitors();
-	if (monitors.size() < 2) return false;
+	if (monitors.size() < 2)
+		return false;
 
 	// Put primary first so it anchors at (0,0)
 	std::stable_partition(monitors.begin(), monitors.end(),
-		[](const MonitorConfig& m) { return m.isPrimary; });
+						  [](const MonitorConfig &m)
+						  { return m.isPrimary; });
 
 	LONG xOffset = 0;
 
-	for (auto& mon : monitors) {
-		DEVMODE dm = mon.devMode;   // already populated from ENUM_CURRENT_SETTINGS
+	for (auto &mon : monitors)
+	{
+		DEVMODE dm = mon.devMode; // already populated from ENUM_CURRENT_SETTINGS
 		dm.dmFields = DM_POSITION;
 
 		dm.dmPosition.x = xOffset;
@@ -632,9 +779,10 @@ bool ExtendDesktop() {
 			mon.deviceName.c_str(), &dm,
 			nullptr, CDS_UPDATEREGISTRY | CDS_NORESET, nullptr);
 
-		if (result != DISP_CHANGE_SUCCESSFUL) {
+		if (result != DISP_CHANGE_SUCCESSFUL)
+		{
 			std::wcerr << L"Failed to stage: " << mon.deviceName
-				<< L" (code " << result << L")\n";
+					   << L" (code " << result << L")\n";
 			return false;
 		}
 
@@ -645,4 +793,16 @@ bool ExtendDesktop() {
 	// Single atomic commit
 	LONG result = ChangeDisplaySettingsEx(nullptr, nullptr, nullptr, 0, nullptr);
 	return result == DISP_CHANGE_SUCCESSFUL;
+}
+
+void DisplayManager::setStartOnUserLogin(bool v)
+{
+	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+	m_startOnUserLogin = v;
+	// Update registry Run key
+	if (!SetRunOnStartup(v))
+	{
+		log_file("Failed to update startup registry key\n");
+	}
+	SaveSettings();
 }

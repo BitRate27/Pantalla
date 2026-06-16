@@ -8,7 +8,8 @@
 #include "parsec-vdd.h"
 #include "json.hpp"
 
-struct DisplayInfo {
+struct DisplayInfo
+{
 	int vddIndex;
 	std::wstring deviceName;
 	std::string screenName;
@@ -17,15 +18,17 @@ struct DisplayInfo {
 };
 
 // Read-only snapshot safe to pass between threads without locking
-struct DisplaySnapshot {
- int vddIndex;
- std::wstring deviceName;
- std::string screenName;
- bool sendNDI;
- bool hasSender;
+struct DisplaySnapshot
+{
+	int vddIndex;
+	std::wstring deviceName;
+	std::string screenName;
+	bool sendNDI;
+	bool hasSender;
 };
 
-class DisplayManager {
+class DisplayManager
+{
 public:
 	DisplayManager();
 	~DisplayManager();
@@ -35,11 +38,7 @@ public:
 	DisplayInfo *getDisplayInfo(std::vector<DisplayInfo *> displays, std::string screenName);
 	bool addVirtualDisplay();
 	bool addNDISender(std::wstring deviceName, std::string ndiName);
-	bool SetMonitorResolution(const std::wstring& deviceName,
-		DWORD width, DWORD height,
-		DWORD refreshRate,
-		DWORD bitDepth);
-	bool SetMonitorPosition(const std::wstring& deviceName, LONG x, LONG y);
+
 	bool removeNDISender(DisplayInfo *display);
 	// Removal helpers that accept names (safe for UI callers)
 	bool removeNDISenderByNames(const std::wstring &deviceName, const std::string &screenName);
@@ -53,13 +52,9 @@ public:
 	void SaveSettings();
 	void LoadSettings();
 
-	// Start on Windows Startup setting
-	void setStartOnWindowsStartup(bool v)
-	{
-		m_startOnWindowsStartup = v;
-		SaveSettings();
-	}
-	bool getStartOnWindowsStartup() const { return m_startOnWindowsStartup; }
+	// Start on User Login setting
+	void setStartOnUserLogin(bool v);
+	bool getStartOnUserLogin() const { return m_startOnUserLogin; }
 
 	// helper queries
 	bool nameExists(std::vector<std::wstring> list, std::wstring name);
@@ -67,6 +62,11 @@ public:
 
 	// load helper
 	void getDisplaysFromSettings(::nlohmann::json &j, const std::string &displayType, std::vector<DisplayInfo *> &displays);
+	bool setMonitorResolution(const std::wstring &deviceName,
+							  DWORD width, DWORD height,
+							  DWORD refreshRate,
+							  DWORD bitDepth);
+	bool setMonitorPosition(const std::wstring &deviceName, LONG x, LONG y);
 
 private:
 	void displayMonitorThread();
@@ -85,5 +85,5 @@ private:
 	mutable std::recursive_mutex m_mutex; // protects m_displays and related state, recursive for reentrancy
 
 	// persisted setting
-	bool m_startOnWindowsStartup = false;
+	bool m_startOnUserLogin = false;
 };

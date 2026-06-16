@@ -154,10 +154,18 @@ void TrayApp::onOpenSettings()
 	QDialog dlg;
 	dlg.setWindowTitle(QStringLiteral("Settings"));
 	QVBoxLayout *v = new QVBoxLayout(&dlg);
-	QCheckBox *cb = new QCheckBox(QStringLiteral("Start on Windows Startup"));
+	QCheckBox *cb = new QCheckBox(QStringLiteral("Start on User Login"));
 	if (m_displayManager)
-		cb->setChecked(m_displayManager->getStartOnWindowsStartup());
+		cb->setChecked(m_displayManager->getStartOnUserLogin());
 	v->addWidget(cb);
+
+	// Repository link (clickable) - added before the NDI trademark line
+	QLabel *repoLink = new QLabel();
+	repoLink->setTextFormat(Qt::RichText);
+	repoLink->setText(QStringLiteral("<a href=\"https://github.com/BitRate27/Pantalla\">https://github.com/BitRate27/Pantalla</a>"));
+	repoLink->setTextInteractionFlags(Qt::TextBrowserInteraction);
+	repoLink->setOpenExternalLinks(true);
+	v->addWidget(repoLink);
 
 	// Trademark / link line above buttons
 	QLabel *note = new QLabel();
@@ -184,9 +192,9 @@ void TrayApp::onOpenSettings()
 
 	if (dlg.exec() == QDialog::Accepted) {
 		bool startOnBoot = cb->isChecked();
-		log_file("Settings changed: StartOnWindowsStartup=%d\n", startOnBoot);
-		if (m_displayManager->getStartOnWindowsStartup() != startOnBoot) {
-			m_displayManager->setStartOnWindowsStartup(startOnBoot);
+		log_file("Settings changed: StartOnUserLogin=%d\n", startOnBoot);
+		if (m_displayManager->getStartOnUserLogin() != startOnBoot) {
+			m_displayManager->setStartOnUserLogin(startOnBoot);
 		}
 	}
 }

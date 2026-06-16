@@ -3,7 +3,7 @@
 
 #define MyProjectName "Pantalla"
 #define MyAppName "Pantalla"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.1.2"
 #define MyAppPublisher "BitRate27"
 #define MyAppURL "https://github.com/BitRate27/Pantalla"
 #define MyAppId "d66f2371-0ddd-4bb8-a888-c2f4cf827a30"
@@ -50,7 +50,7 @@ Name: "{commondesktop}\Pantalla"; Filename: "{app}\Pantalla.exe"; Tasks: desktop
 
 [Tasks]
 Name: desktopicon; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; Flags: unchecked
-; Optional installation of the NDI Runtime — selected by default (omit 'unchecked' so checkbox is checked)
+; Optional installation of the NDI Runtime ï¿½ selected by default (omit 'unchecked' so checkbox is checked)
 Name: install_ndi_runtime; Description: "Install NDI Runtime (recommended)"; GroupDescription: "Additional components:";
 Name: install_parsec_vdd; Description: "Install Parsec VDD (recommended)"; GroupDescription: "Additional components:";
 
