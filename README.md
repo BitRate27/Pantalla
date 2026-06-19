@@ -1,4 +1,5 @@
-# Pantalla
+<img width="260" height="97" alt="1000031982" src="https://github.com/user-attachments/assets/f28c0007-dceb-4965-9a5c-8e7b9722ff91" />
+
 Output real and virtual displays over NDI
 
 ## User instructions
