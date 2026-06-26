@@ -4,7 +4,7 @@ Output real and virtual displays over NDI
 
 ## User instructions
 ### Downloading
-1. Download latest release [here](https://github.com/BitRate27/Pantalla/releases/latest/download/PantallaInstaller.exe)
+1. Download latest release [here](https://github.com/BitRate27/Pantalla/releases/latest/download/PantallaInstaller.exe) You can find the installer in your Downloads folder.
 or...
 1. Go to the [releases page](https://github.com/BitRate27/Pantalla/releases)
 2. Expand the Assets list for the release you want (latest one is top of the list)
@@ -33,6 +33,7 @@ or...
 - Click on the NDI with a black background to turn NDI on for that display
 - Click on the NDI with a green background to turn NDI off for that display
 - Click on Add virtual display to add a new Parsec Virtual Display
+  - Note: After adding your first Virtual Display, you will need to go into Windows Settings->Display and change Duplicate to Extend.
 - Click on the red x to remove the last virtual display added
 - Click on Settings for saved settings and to see links and copyrights
 - Click on Exit to terminate all NDI senders and remove any virtual displays
