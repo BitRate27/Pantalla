@@ -11,7 +11,7 @@ or...
 3. Download PantallaInstaller.exe
 
 ### Installation
-1. Run the PantallaInstaller.exe
+1. Run the Downloads\PantallaInstaller.exe
 2. May have to turn off Windows Defender Screen or any protection from exes from unknown publishers
 3. Wait for a few moments after installation wizard finishes for the Parsec Driver and NDI Runtime to install
 
