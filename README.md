@@ -38,6 +38,14 @@ or...
 - Click on Settings for saved settings and to see links and copyrights
 - Click on Exit to terminate all NDI senders and remove any virtual displays
 
+## Example Workflow - OBS Multiview over NDI
+1. Launch Pantalla
+2. Bring up the Pantalla menu (RMB on Pantalla in System tray)
+3. Select Add virtual display
+4. Go into Windows Settings->Display and change Duplicate to Extend. Second display (2) will be a virtual display
+5. Open OBS
+6. View->Open Multiview->ParsecVDA
+
 ## Developer Notes
 ### Building
 1. git clone https://github.com/BitRate27/Pantalla.git
